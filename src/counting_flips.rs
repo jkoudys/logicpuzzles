@@ -1,25 +1,41 @@
 use rand::random;
+use std::collections::HashMap;
+use std::fmt;
 
 // Define an enum for the possible outcomes
-enum Outcome {
+#[derive(PartialEq, Eq, Hash)]
+pub enum Outcome {
     Alice,
     Bob,
     Tie,
+}
+
+impl fmt::Display for Outcome {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let outcome_str = match self {
+            Outcome::Alice => "alice",
+            Outcome::Bob => "bob",
+            Outcome::Tie => "tie",
+        };
+        write!(f, "{}", outcome_str)
+    }
 }
 
 fn simulate_game(flips: usize) -> Outcome {
     // Generate 100 random coins (1 for heads, 0 for tails)
     let coins = random::<u128>();
 
-    let found = (0..(flips / 2 - 1)).map(|v| v * 2).chain((0..(flips / 2 - 1)).map(|v| v * 2 + 1))
-            .zip(0..flips)
-            .map(|(a, b)| (coins & (1 << a) > 0, coins & (1 << b) > 0))
-            .scan((0, 0), |count, coin| {
-                count.0 += coin.0 as u8;
-                count.1 += coin.1 as u8;
-                Some(*count)
-            })
-            .find(|count| count.0 == 2 || count.1 == 2);
+    let found = (0..(flips / 2 - 1))
+        .map(|v| v * 2)
+        .chain((0..(flips / 2 - 1)).map(|v| v * 2 + 1))
+        .zip(0..flips)
+        .map(|(a, b)| (coins & (1 << a) > 0, coins & (1 << b) > 0))
+        .scan((0, 0), |count, coin| {
+            count.0 += coin.0 as u8;
+            count.1 += coin.1 as u8;
+            Some(*count)
+        })
+        .find(|count| count.0 == 2 || count.1 == 2);
 
     match found {
         None | Some((2, 2)) => Outcome::Tie,
@@ -29,23 +45,11 @@ fn simulate_game(flips: usize) -> Outcome {
     }
 }
 
-pub fn run_simulations(num_simulations: usize) -> (f64, f64, f64) {
-    let mut alice_wins = 0;
-    let mut bob_wins = 0;
-    let mut ties = 0;
-
-    for _ in 0..num_simulations {
-        match simulate_game(100) {
-            Outcome::Alice => alice_wins += 1,
-            Outcome::Bob => bob_wins += 1,
-            Outcome::Tie => ties += 1,
-        }
-    }
-
-    // Calculate percentages
-    let alice_percentage = (alice_wins as f64 / num_simulations as f64) * 100.0;
-    let bob_percentage = (bob_wins as f64 / num_simulations as f64) * 100.0;
-    let tie_percentage = (ties as f64 / num_simulations as f64) * 100.0;
-
-    (alice_percentage, bob_percentage, tie_percentage)
+pub fn run_simulations(num_simulations: usize) -> HashMap<Outcome, usize> {
+    (0..num_simulations).fold(HashMap::new(), |mut hm, _| {
+        hm.entry(simulate_game(10))
+            .and_modify(|count| *count += 1)
+            .or_insert(1);
+        hm
+    })
 }
