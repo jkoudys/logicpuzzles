@@ -2,7 +2,7 @@ import random
 
 def simulate_game():
     # Generate 100 coins with random heads (1) or tails (0)
-    coins = [random.choice([0, 1]) for _ in range(100)]
+    coins = [random.choice([0, 1]) for _ in range(1000)]
     
     # Alice and Bob both start the same
     alice_index = 0
@@ -22,7 +22,7 @@ def simulate_game():
         if bob_index < 100:
             if coins[bob_index] == 1:
                 bob_heads += 1
-            bob_index += 2  # Bob goes to the next odd index
+            bob_index += 2
         
         # Bob goes back to evens if he finishes odds
         if bob_index >= 100:
@@ -49,9 +49,7 @@ def run_simulations(num_simulations):
     
     return percentages
 
-# Run the simulation 100,000 times
-num_simulations = 1000000
-percentages = run_simulations(num_simulations)
+percentages = run_simulations(100000)
 
 print(f"After {num_simulations} simulations:")
 print(f"Alice: {percentages['Alice']:.2f}%")

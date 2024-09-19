@@ -1,4 +1,4 @@
-use rand::Rng;
+use rand::random;
 
 // Define an enum for the possible outcomes
 enum Outcome {
@@ -8,16 +8,15 @@ enum Outcome {
 }
 
 fn simulate_game(flips: usize) -> Outcome {
-    let mut rng = rand::thread_rng();
     // Generate 100 random coins (1 for heads, 0 for tails)
-    let coins: Vec<i32> = (0..flips).map(|_| rng.gen_range(0..=1)).collect();
+    let coins = random::<u128>();
 
     let found = (0..(flips / 2 - 1)).map(|v| v * 2).chain((0..(flips / 2 - 1)).map(|v| v * 2 + 1))
             .zip(0..flips)
-            .map(|(a, b)| (coins[a], coins[b]))
+            .map(|(a, b)| (coins & (1 << a) > 0, coins & (1 << b) > 0))
             .scan((0, 0), |count, coin| {
-                count.0 += coin.0;
-                count.1 += coin.1;
+                count.0 += coin.0 as u8;
+                count.1 += coin.1 as u8;
                 Some(*count)
             })
             .find(|count| count.0 == 2 || count.1 == 2);
